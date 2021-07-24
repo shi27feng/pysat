@@ -13,7 +13,7 @@ logger = set_logger()
 
 class Solver:
 
-    def __init__(self, filename):
+    def __init__(self, filename, do_stat=False):
         logger.info('========= create pysat from %s =========', filename)
         self.filename = filename
         self.cnf, self.vars = Solver.read_file(filename)
@@ -25,6 +25,8 @@ class Solver:
         self.branching_history = {}  # level -> branched variable
         self.propagate_history = {}  # level -> propagate variables list
         self.branching_count = 0
+        self.do_stat = do_stat
+        self.stats = {"num_iters": 0}
 
     def run(self):
         start_time = time.time()
@@ -60,6 +62,8 @@ class Solver:
         self.preprocess()
         while not self.are_all_variables_assigned():
             conf_cls = self.unit_propagate()
+            if self.do_stat:
+                self.stats['num_iters'] += 1
             if conf_cls is not None:
                 # there is conflict in unit propagation
                 logger.fine('implication nodes: \n%s', self.nodes)
